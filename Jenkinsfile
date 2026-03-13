@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'us-east-1'
-        ACCOUNT_ID = '318948072665'
-        ECR_REPO = 'car-website'
-        IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
-        CLUSTER = 'car-website-cluster'
-        SERVICE = 'car-website-task-service'
+        AWS_REGION = "us-east-1"
+        ECR_REPO = "318948072665.dkr.ecr.us-east-1.amazonaws.com/car-website"
+        CLUSTER_NAME = "car-website-cluster"
+        SERVICE_NAME = "car-website-task-service"
     }
 
-            stage('Build Docker Image') {
+    stages {
+
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t car-website .'
             }
@@ -18,22 +18,21 @@ pipeline {
 
         stage('Tag Docker Image') {
             steps {
-                sh 'docker tag car-website:latest $IMAGE_URI:latest'
+                sh 'docker tag car-website:latest $ECR_REPO:latest'
             }
         }
 
         stage('Login to AWS ECR') {
             steps {
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 318948072665.dkr.ecr.us-east-1.amazonaws.com
                 '''
             }
         }
 
         stage('Push Image to ECR') {
             steps {
-                sh 'docker push $IMAGE_URI:latest'
+                sh 'docker push $ECR_REPO:latest'
             }
         }
 
@@ -41,8 +40,8 @@ pipeline {
             steps {
                 sh '''
                 aws ecs update-service \
-                --cluster $CLUSTER \
-                --service $SERVICE \
+                --cluster $CLUSTER_NAME \
+                --service $SERVICE_NAME \
                 --force-new-deployment
                 '''
             }
