@@ -12,31 +12,38 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t car-website .'
+                sh 'docker build -t car-website .'
             }
         }
 
         stage('Tag Docker Image') {
             steps {
-                bat 'docker tag car-website:latest %ECR_REPO%:latest'
+                sh 'docker tag car-website:latest $ECR_REPO:latest'
             }
         }
 
         stage('Login to AWS ECR') {
             steps {
-                bat 'aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin 318948072665.dkr.ecr.us-east-1.amazonaws.com'
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 318948072665.dkr.ecr.us-east-1.amazonaws.com
+                '''
             }
         }
 
         stage('Push Image to ECR') {
             steps {
-                bat 'docker push %ECR_REPO%:latest'
+                sh 'docker push $ECR_REPO:latest'
             }
         }
 
         stage('Deploy to ECS') {
             steps {
-                bat 'aws ecs update-service --cluster %CLUSTER_NAME% --service %SERVICE_NAME% --force-new-deployment'
+                sh '''
+                aws ecs update-service \
+                --cluster $CLUSTER_NAME \
+                --service $SERVICE_NAME \
+                --force-new-deployment
+                '''
             }
         }
 
