@@ -10,15 +10,7 @@ pipeline {
         SERVICE = 'car-website-task-service'
     }
 
-    stages {
-
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/Sreejathukkani/car-website-docker.git'
-            }
-        }
-
-        stage('Build Docker Image') {
+            stage('Build Docker Image') {
             steps {
                 sh 'docker build -t car-website .'
             }
